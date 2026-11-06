@@ -1,0 +1,15 @@
+# Normalise line endings so that a fresh clone compiles to the same bytes on every machine.
+#
+# Without this, a checkout with core.autocrlf=true gets CRLF for some files and LF for others,
+# and the compiler folds those differences into the assembly (the debug directory hashes the
+# inputs), so the same commit produced dll files that differed in 72 bytes.
+* text=auto eol=lf
+
+# Windows-only helpers must keep CRLF so that the batch files, if any are added later, still run.
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+*.png   binary
+*.blp   binary
+*.dll   binary
