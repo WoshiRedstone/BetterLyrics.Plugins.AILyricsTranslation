@@ -54,7 +54,8 @@ dotnet build -c Release -p:BetterLyricsHostDir=$stub    # twice, see AGENTS.md 4
 ```
 
 Result: the same `Trimmed 3 redundant dependencies` and the same 20-entry package
-(37463 bytes in the reference build), so the stub is a faithful stand-in.
+(about 37 KB; the exact byte count drifts by a few bytes between builds because the zip
+records file timestamps), so the stub is a faithful stand-in.
 
 If you use a stub that lists **no** libraries (a file containing just `{}`), the packer prints
 `Trimmed 0 redundant dependencies` and produces a **23-entry / ~681 KB** package that still
