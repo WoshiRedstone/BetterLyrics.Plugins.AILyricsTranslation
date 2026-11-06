@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AssemblyName>BetterLyrics.Plugins.AILyricsTranslation.Harness</AssemblyName>
+		<RootNamespace>BetterLyrics.Plugins.AILyricsTranslation.Harness</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Shared helpers: locates the built plugin without machine specific paths. -->
+		<Compile Include="..\Shared\TestPaths.cs" Link="TestPaths.cs" />
+		<PackageReference Include="BetterLyrics.Sdk" Version="1.0.3" />
+		<!--
+			The BetterLyrics host ships ChineseConverter.dll (BetterLyrics.Core references CHTCHSConv),
+			so the packer trims it out of the plugin package on purpose. Reference it here as well so
+			the harness process has the same base directory the real host has.
+		-->
+		<PackageReference Include="CHTCHSConv" Version="1.0.0" />
+	</ItemGroup>
+
+</Project>

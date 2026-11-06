@@ -1,0 +1,49 @@
+MIT License
+
+Copyright (c) 2026 BetterLyrics Community
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+--------------------------------------------------------------------------------
+
+Third-party notice (read this before you redistribute a compiled build)
+
+This repository's own source code is MIT, as above. It does not compile or run
+on its own, however: it references two NuGet packages published by the
+BetterLyrics project, and the built .blp is loaded by the BetterLyrics host.
+
+  * BetterLyrics.Sdk 1.0.3       - GPL-3.0-or-later
+    https://github.com/jayfunc/BetterLyrics/tree/dev/src/BetterLyrics.Sdk
+  * BetterLyrics.DevTools 1.0.3  - MIT
+    https://github.com/BetterLyrics/BetterLyrics.DevTools
+  * BetterLyrics host 1.3.544.0  - GPL-3.0
+    https://github.com/BetterLyrics/BetterLyrics
+
+BetterLyrics.Sdk is GPL-3.0-or-later. A compiled plugin links against it, so the
+binary as a whole is a work that must be distributed under the terms of the
+GPL-3.0, even though the sources in this repository are offered under the MIT
+license. The release artefacts attached to GitHub Releases are published on
+that basis. If that distinction matters to you, treat the built .blp as
+GPL-3.0 and this source tree as MIT.
+
+The translation pipeline was ported from BetterLyrics-AI-Lyrics-Translation-
+Assistant, which is MIT licensed:
+
+  Copyright (c) 2026 pliok7485
+  https://github.com/pliok7485/BetterLyrics-AI-Lyrics-Translation-Assistant

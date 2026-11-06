@@ -1,0 +1,23 @@
+{
+  "Settings.Mode.Label": "翻譯引擎",
+  "Settings.Mode.Desc": "Google = 免費網頁介面（無需 Key）。AI = 任意 OpenAI 相容的 /chat/completions 介面。Gemini = Google AI Studio。",
+  "Settings.ApiUrl.Label": "介面位址",
+  "Settings.ApiUrl.Desc": "OpenAI 相容介面的基礎位址，或完整的 DeepL 介面位址。Google / Gemini 模式下忽略。",
+  "Settings.ApiKey.Label": "API 金鑰",
+  "Settings.ApiKey.Desc": "OpenAI 相容介面的 Bearer 金鑰、Gemini 金鑰或 DeepL 認證金鑰。",
+  "Settings.ModelName.Label": "模型名稱",
+  "Settings.ModelName.Desc": "AI / Gemini 模式使用的模型，例如 gpt-4o-mini、deepseek-chat、gemini-2.0-flash。",
+  "Settings.SystemPrompt.Label": "系統提示詞",
+  "Settings.SystemPrompt.Desc": "傳送給模型的指令，必須強制「一行進、一行出」的嚴格對應關係。",
+  "Settings.Temperature.Label": "溫度",
+  "Settings.Temperature.Desc": "AI 模式的取樣溫度（0 表示結果確定）。",
+  "Settings.ToSimplifiedChinese.Label": "輸出簡體中文",
+  "Settings.ToSimplifiedChinese.Desc": "回傳譯文前，把繁體中文轉換為簡體中文。",
+  "Settings.ChunkThreshold.Label": "單次請求最大行數",
+  "Settings.ChunkThreshold.Desc": "歌詞行數超過此值時，會依每 12 行切塊平行翻譯，避免請求逾時。",
+  "Settings.RequestTimeoutSeconds.Label": "請求逾時（秒）",
+  "Settings.RequestTimeoutSeconds.Desc": "單次翻譯請求的最長等待時間。較慢的模型翻譯一整段歌詞可能需要 25 秒以上；原版 Python 工具固定為 30 秒，逾時後會靜默保留未翻譯的原文。",
+  "Settings.TestConnection.Label": "測試連線",
+  "Settings.TestConnection.Desc": "向已設定的介面送出一次極小的請求，並把結果寫入記錄檔。",
+  "Settings.TestConnection.Button": "測試"
+}

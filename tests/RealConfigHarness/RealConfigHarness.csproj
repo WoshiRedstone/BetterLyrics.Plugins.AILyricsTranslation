@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AssemblyName>BetterLyrics.RealConfigHarness</AssemblyName>
+		<RootNamespace>BetterLyrics.RealConfigHarness</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Shared helpers: locates the built plugin without machine specific paths. -->
+		<Compile Include="..\Shared\TestPaths.cs" Link="TestPaths.cs" />
+		<!--
+			References the host's real BetterLyrics.Core project so the serializer context under test
+			is the exact one the shipping application uses (SourceGenerationContext), not a stand-in.
+		-->
+		<ProjectReference Include="..\..\..\BetterLyrics-dev\BetterLyrics-dev\src\BetterLyrics.DotNet\BetterLyrics.Core\BetterLyrics.Core.csproj" />
+	</ItemGroup>
+
+</Project>

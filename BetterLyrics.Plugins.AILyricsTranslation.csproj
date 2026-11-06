@@ -1,0 +1,86 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<EnableDynamicLoading>true</EnableDynamicLoading>
+		<AssemblyName>BetterLyrics.Plugins.AILyricsTranslation</AssemblyName>
+		<RootNamespace>BetterLyrics.Plugins.AILyricsTranslation</RootNamespace>
+		<RepositoryUrl>https://github.com/pliok7485/BetterLyrics-AI-Lyrics-Translation-Assistant</RepositoryUrl>
+		<Version>1.0.0</Version>
+		<Authors>BetterLyrics Community</Authors>
+		<Company>$(Authors)</Company>
+		<Copyright>Copyright © 2026 $(Authors)</Copyright>
+		<Description>AI powered lyrics translation (OpenAI-compatible / Gemini / DeepL / Google) ported from BetterLyrics-AI-Lyrics-Translation-Assistant. Outputs Simplified Chinese.</Description>
+		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!--
+			Where BetterLyrics.DevTools looks for the host's BetterLyrics.WinUI3.deps.json so it can
+			trim the dependencies the host already ships. Point it at a checked out BetterLyrics
+			repository (or a build output folder that contains that deps.json), either by editing the
+			value below or, without editing the file, on the command line:
+
+			    dotnet build -c Release -p:BetterLyricsHostDir=D:\src\BetterLyrics
+
+			The default assumes the repository was cloned next to a BetterLyrics checkout, which is
+			the layout AGENTS.md describes. When the path does not exist the plugin still builds; the
+			DevTools task only logs "Host deps.json file not found." and skips the trimming step.
+		-->
+		<BetterLyricsHostDir Condition="'$(BetterLyricsHostDir)' == ''">$(MSBuildThisFileDirectory)..\BetterLyrics-dev\BetterLyrics-dev</BetterLyricsHostDir>
+	</PropertyGroup>
+
+	<!--
+		The test harnesses live in tests\ below this project. The SDK's default globs would pull
+		their sources (and the AssemblyInfo files their own builds leave in tests\*\obj) into this
+		assembly, which produced CS0101 / CS0579 / CS8802. They are separate projects, so keep
+		everything under tests\ out of this one.
+	-->
+	<ItemGroup>
+		<Compile Remove="tests\**" />
+		<None Remove="tests\**" />
+		<EmbeddedResource Remove="tests\**" />
+		<Content Remove="tests\**" />
+		<Page Remove="tests\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Langs\*.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Localization\*.json">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<!--
+		BetterLyrics.DevTools regenerates Langs\*.json from the [Display] attributes on every build,
+		which would overwrite hand written translations. The translated files therefore live in
+		Localization\ and are copied over the generated Langs right before the .blp is packed.
+		Runtime logs written into the output folder are removed so they never end up inside the package.
+	-->
+	<Target Name="OverlayPluginLocalization" AfterTargets="Build" BeforeTargets="RunBetterLyricsDevTools">
+		<ItemGroup Condition="Exists('$(ProjectDir)Langs')">
+			<_GeneratedLangFile Include="$(ProjectDir)Langs\*.json" />
+		</ItemGroup>
+		<ItemGroup Condition="Exists('$(ProjectDir)Localization')">
+			<_LocalizedLangFile Include="$(ProjectDir)Localization\*.json" />
+		</ItemGroup>
+		<Copy SourceFiles="@(_GeneratedLangFile)" DestinationFolder="$(OutDir)Langs" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="@(_LocalizedLangFile)" DestinationFolder="$(OutDir)Langs" SkipUnchangedFiles="true" />
+		<ItemGroup>
+			<_PluginRuntimeLog Include="$(OutDir)logs\**\*.*" />
+			<_PluginLocalizationSource Include="$(OutDir)Localization\**\*.*" />
+		</ItemGroup>
+		<Delete Files="@(_PluginRuntimeLog);@(_PluginLocalizationSource)" />
+	</Target>
+
+	<ItemGroup>
+		<PackageReference Include="BetterLyrics.DevTools" Version="1.0.3" />
+		<PackageReference Include="BetterLyrics.Sdk" Version="1.0.3" />
+		<PackageReference Include="CHTCHSConv" Version="1.0.0" />
+	</ItemGroup>
+
+</Project>
