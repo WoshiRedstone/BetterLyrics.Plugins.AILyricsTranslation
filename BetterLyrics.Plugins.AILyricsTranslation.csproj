@@ -14,20 +14,30 @@
 		<Copyright>Copyright © 2026 $(Authors)</Copyright>
 		<Description>AI powered lyrics translation (OpenAI-compatible / Gemini / DeepL / Google) ported from BetterLyrics-AI-Lyrics-Translation-Assistant. Outputs Simplified Chinese.</Description>
 		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+		<!--
+			The SDK appends "+<commit sha>" to the informational version, which makes the compiled dll
+			differ for every clone and every commit. Turning it off keeps a build of the same sources
+			byte-for-byte identical, so a release can be reproduced by re-cloning the tag.
+		-->
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+		<Deterministic>true</Deterministic>
+		<ContinuousIntegrationBuild Condition="'$(ContinuousIntegrationBuild)' == '' and '$(GITHUB_ACTIONS)' != ''">true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<!--
-			Where BetterLyrics.DevTools looks for the host's BetterLyrics.WinUI3.deps.json so it can
-			trim the dependencies the host already ships. Point it at a checked out BetterLyrics
-			repository (or a build output folder that contains that deps.json), either by editing the
-			value below or, without editing the file, on the command line:
+			Where BetterLyrics.DevTools looks for the host's BetterLyrics.WinUI3.deps.json (or
+			BetterLyrics.deps.json) so it can trim the dependencies the host already ships. Point it at
+			a checked out BetterLyrics repository (or at a build output folder that contains that
+			deps.json), either by editing the value below or, without editing the file, on the command
+			line:
 
 			    dotnet build -c Release -p:BetterLyricsHostDir=D:\src\BetterLyrics
 
-			The default assumes the repository was cloned next to a BetterLyrics checkout, which is
-			the layout AGENTS.md describes. When the path does not exist the plugin still builds; the
-			DevTools task only logs "Host deps.json file not found." and skips the trimming step.
+			The folder must exist AND contain the deps.json: the DevTools task fails the build with
+			"Host solution directory is invalid or does not exist" or "Host deps.json file not found."
+			otherwise. Without a host checkout, copy build\host-deps.stub.json into an empty folder as
+			BetterLyrics.deps.json and point this property at that folder - see docs/build-without-host.md.
 		-->
 		<BetterLyricsHostDir Condition="'$(BetterLyricsHostDir)' == ''">$(MSBuildThisFileDirectory)..\BetterLyrics-dev\BetterLyrics-dev</BetterLyricsHostDir>
 	</PropertyGroup>

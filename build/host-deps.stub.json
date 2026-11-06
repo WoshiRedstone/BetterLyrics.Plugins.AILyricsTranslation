@@ -1,0 +1,42 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "targets": {
+    "net10.0": {
+      "BetterLyrics.Sdk/1.0.3": {
+        "runtime": {
+          "BetterLyrics.Sdk.dll": {}
+        }
+      },
+      "CHTCHSConv/1.0.0": {
+        "runtime": {
+          "ChineseConverter.dll": {}
+        }
+      },
+      "NLanguageTag/2.1.0": {
+        "runtime": {
+          "NLanguageTag.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "BetterLyrics.Sdk/1.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": ""
+    },
+    "CHTCHSConv/1.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": ""
+    },
+    "NLanguageTag/2.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": ""
+    }
+  }
+}

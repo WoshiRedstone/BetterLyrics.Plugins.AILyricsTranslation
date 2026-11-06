@@ -1,0 +1,90 @@
+# Building without a BetterLyrics checkout
+
+`BetterLyrics.DevTools` wants the host's dependency list so it can drop the assemblies the
+host already ships. It reads exactly two file names from `$(BetterLyricsHostDir)`:
+
+- `BetterLyrics.WinUI3.deps.json` (the desktop head), or
+- `BetterLyrics.deps.json`
+
+and if neither is present the build **fails**:
+
+```
+error : [DevTools Error] Host deps.json file not found.
+```
+
+Same for a path that does not exist at all:
+
+```
+error : [DevTools Error] Host solution directory is invalid or does not exist: <path>
+```
+
+Both are errors, not warnings — the "it only logs and carries on" idea is wrong, which is why
+this file exists. Two ways out.
+
+## 1. Point at a real checkout (best)
+
+```powershell
+git clone https://github.com/BetterLyrics/BetterLyrics.git D:\src\BetterLyrics
+dotnet build -c Release -p:BetterLyricsHostDir=D:\src\BetterLyrics
+```
+
+Any folder that contains `BetterLyrics.WinUI3.deps.json` or `BetterLyrics.deps.json` works, so
+a host build output directory (`...\bin\x64\Debug\net10.0-windows10.0.26100.0`) is fine too.
+With a real host file the packer prints:
+
+```
+[DevTools] Successfully packed! Trimmed 3 redundant dependencies. Output: ...\Dist\<id>.v1.0.0.blp
+```
+
+and the package has **20 entries / ~37 KB**.
+
+## 2. Use the shipped stub (no checkout needed)
+
+`build/host-deps.stub.json` lists the three assemblies the plugin relies on and that the host
+already provides (`BetterLyrics.Sdk`, `CHTCHSConv`, `NLanguageTag`). Copy it into a scratch
+folder under the name the task looks for and build against that:
+
+```powershell
+$stub = Join-Path $env:TEMP 'bl-hoststub'
+New-Item -ItemType Directory -Force -Path $stub | Out-Null
+Copy-Item .\build\host-deps.stub.json (Join-Path $stub 'BetterLyrics.deps.json') -Force
+
+dotnet build -c Release -p:BetterLyricsHostDir=$stub
+dotnet build -c Release -p:BetterLyricsHostDir=$stub    # twice, see AGENTS.md 4.4
+```
+
+Result: the same `Trimmed 3 redundant dependencies` and the same 20-entry package
+(37463 bytes in the reference build), so the stub is a faithful stand-in.
+
+If you use a stub that lists **no** libraries (a file containing just `{}`), the packer prints
+`Trimmed 0 redundant dependencies` and produces a **23-entry / ~681 KB** package that still
+works — it simply also carries `BetterLyrics.Sdk.dll`, `ChineseConverter.dll` and
+`NLanguageTag.dll`, which the host will also load. Prefer the shipped stub; the smaller package
+is what the release uses.
+
+## 3. Two things that will bite you
+
+- **The clone folder must keep the assembly name.** The packer derives the package name from
+  the project directory name. Cloning into `bl-clone-check` produces `Dist\Plugin.v1.0.0.blp`
+  (148 bytes, empty). Clone into `BetterLyrics.Plugins.AILyricsTranslation` and you get
+  `Dist\BetterLyrics.Plugins.AILyricsTranslation.v1.0.0.blp`.
+- **A JSON syntax error is only a warning.** If `BetterLyrics.deps.json` exists but does not
+  parse, the task logs
+  `[DevTools Warning] Host JSON parsing failed (…), falling back to full packaging.` and packs
+  everything untrimmed. A malformed stub silently gives you the 23-entry package instead of
+  failing, so check the `Trimmed N` number in the output.
+
+## 4. Reproducibility
+
+The project sets `Deterministic=true` and
+`IncludeSourceRevisionInInformationalVersion=false`, so **two clean builds of the same sources
+produce a byte-identical `BetterLyrics.Plugins.AILyricsTranslation.dll`** (verified:
+`461A1DD2FB3CA9C2302870C98217C8357776854695FAFF537EB4030D731CB6E9`, 46592 bytes).
+
+The `.blp` is a different story: `BetterLyrics.DevTools` writes the zip entries with their
+file timestamps, so the package hash changes between builds even though every entry inside it
+is identical. Compare entries, not the archive, when you check a rebuild.
+
+Without `IncludeSourceRevisionInInformationalVersion=false` the SDK appends
+`+<commit sha>` to the informational version, which makes every clone and every commit produce
+a different dll — that is why the property is there.

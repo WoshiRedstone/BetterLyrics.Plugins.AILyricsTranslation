@@ -79,12 +79,21 @@ dotnet build -c Release      # 第二次：把 Langs 打进 .blp
 3. 参照 `BetterLyricsHostDir` 下宿主的 `BetterLyrics.WinUI3.deps.json` 裁剪冗余依赖，输出
    `Dist\BetterLyrics.Plugins.AILyricsTranslation.v1.0.0.blp`。
 
-`BetterLyricsHostDir` 默认是 `<仓库>\..\BetterLyrics-dev\BetterLyrics-dev`，**指错也能构建**，
-DevTools 只会打印 `Host deps.json file not found.` 并跳过裁剪（产物大一点，功能不变）。要指到别处：
+`BetterLyricsHostDir` 默认是 `<仓库>\..\BetterLyrics-dev\BetterLyrics-dev`，指向宿主的
+`BetterLyrics.WinUI3.deps.json`。**这个目录必须存在且真的含 deps.json，否则构建直接失败**
+（`[DevTools Error] Host deps.json file not found.`，exit code 1，不产出任何包）。
+
+没有宿主源码时用仓库自带的 stub：
 
 ```powershell
-dotnet build -c Release -p:BetterLyricsHostDir=D:\src\BetterLyrics
+$stub = Join-Path $env:TEMP 'bl-hoststub'
+New-Item -ItemType Directory -Force -Path $stub | Out-Null
+Copy-Item .\build\host-deps.stub.json (Join-Path $stub 'BetterLyrics.deps.json') -Force
+dotnet build -c Release -p:BetterLyricsHostDir=$stub
 ```
+
+细节（`{}` stub 与三库 stub 的产物差异、目录名必须等于 `AssemblyName` 等）见
+[`docs/build-without-host.md`](docs/build-without-host.md)。
 
 **注意**：I18n 生成在 `AfterTargets="Build"`，第一次构建时 `Langs` 尚不存在，因此
 **必须连续构建两次**才能得到含 `Langs\` 的完整 `.blp`。

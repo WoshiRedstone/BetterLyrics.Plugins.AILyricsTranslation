@@ -109,26 +109,51 @@ Plugin.GetTranslationAsync
 
 - .NET SDK 10（`dotnet --list-sdks` 应含 `10.x`；本插件 `TargetFramework=net10.0`）
 - 能访问 nuget.org（首次还原 `BetterLyrics.Sdk` / `BetterLyrics.DevTools` / `CHTCHSConv`）
-- 可选：一份 BetterLyrics 源码或构建输出，用于依赖裁剪（见 4.2）
+- **必须**准备一个含 `BetterLyrics.deps.json` 的目录供依赖裁剪（见 4.2，仓库自带 stub）
 
-### 4.2 目录布局（重要）
+### 4.2 目录布局与 BetterLyricsHostDir（重要）
 
-默认布局与本仓库的 `nuget.config` / `csproj` 期望值：
+推荐的布局与本仓库的 `nuget.config` / `csproj` 期望值：
 
 ```
 <workspace>/
-├── BetterLyrics.Plugins.AILyricsTranslation/   ← 本仓库
-└── BetterLyrics-dev/                           ← BetterLyrics 源码（可选）
+├── BetterLyrics.Plugins.AILyricsTranslation/   ← 本仓库（目录名不能改，见下）
+└── BetterLyrics-dev/
+    └── BetterLyrics-dev/                       ← BetterLyrics 源码
 ```
 
-`BetterLyrics.DevTools` 需要宿主的 `BetterLyrics.WinUI3.deps.json` 才能裁掉宿主已带的程序集。
-它由 csproj 里的 `BetterLyricsHostDir` 指定，默认指向 `<仓库>\..\BetterLyrics-dev\BetterLyrics-dev`。
-**路径不对也能构建**，DevTools 只会打印 `Host deps.json file not found.` 并跳过裁剪
-（产物体积会大一些，但功能不变）。要指到别处：
+`BetterLyrics.DevTools` 要读宿主的 `BetterLyrics.WinUI3.deps.json`（或 `BetterLyrics.deps.json`）
+才能裁掉宿主已带的程序集。它由 csproj 里的 `BetterLyricsHostDir` 指定，默认指向
+`<仓库>\..\BetterLyrics-dev\BetterLyrics-dev`。
+
+**这个目录必须存在且真的含 deps.json —— 否则构建直接失败，不是降级。** 实测两种报错都是
+`error :`（会以 exit code 1 结束，产物一个都不生成）：
+
+```
+error : [DevTools Error] Host solution directory is invalid or does not exist: <path>
+error : [DevTools Error] Host deps.json file not found.
+```
+
+没有宿主源码时，用仓库自带的 stub（详见 [`docs/build-without-host.md`](docs/build-without-host.md)）：
 
 ```powershell
-dotnet build -c Release -p:BetterLyricsHostDir=D:\src\BetterLyrics
+$stub = Join-Path $env:TEMP 'bl-hoststub'
+New-Item -ItemType Directory -Force -Path $stub | Out-Null
+Copy-Item .\build\host-deps.stub.json (Join-Path $stub 'BetterLyrics.deps.json') -Force
+dotnet build -c Release -p:BetterLyricsHostDir=$stub
 ```
+
+stub 里列了 `BetterLyrics.Sdk` / `CHTCHSConv` / `NLanguageTag` 三个库，裁剪结果与真实宿主一致
+（`Trimmed 3 redundant dependencies`，20 条目 ≈ 37 KB）。若改用只含 `{}` 的 stub，会变成
+`Trimmed 0`、23 条目 ≈ 681 KB，功能相同但把宿主已带的三个 dll 也打进去了。
+
+两个连带坑：
+
+- **仓库目录名必须保持 `BetterLyrics.Plugins.AILyricsTranslation`。** DevTools 用 `ProjectDir`
+  的目录名当包名，clone 成 `bl-clone-check` 会产出 `Dist\Plugin.v1.0.0.blp`（148 字节空壳）。
+- **deps.json 语法错误只是 warning**：`Host JSON parsing failed (…), falling back to full packaging.`
+  然后按未裁剪打包。看到的是 23 条目而不是报错，容易误以为裁剪生效——请核对输出里的
+  `Trimmed N` 数字。
 
 `nuget.config` 把 `globalPackagesFolder` 指到 `..\_packages`（相对本文件）。这是刻意的：
 包不进 `%USERPROFILE%\.nuget\packages`，构建不在系统上留痕。删掉那行就回到默认缓存。
@@ -194,6 +219,23 @@ Microsoft.NET.Sdk 的默认 glob 会把 `tests/**/*.cs`（含各 Harness 自己�
 
 **⑤ `nuget.config` 的 XML 注释里不能出现 `--`。** 写 `--packages` 会让 NuGet 报
 `NuGet.Config 不是有效的 XML。… An XML comment cannot contain '--'`，四个 Harness 全挂。
+
+### 4.5 构建可复现性
+
+csproj 里有这两个属性：
+
+```xml
+<Deterministic>true</Deterministic>
+<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+```
+
+第二个不是可选项。默认 SDK 会把 `+<commit sha>` 拼进 `InformationalVersion`，于是**同一份源码
+在不同 clone、不同提交下编出的 dll 大小都不一样**（实测 47104 与 46592 字节差的就是这段
+`1.0.0+87e2828…`）。关掉之后，同一份源码两次干净构建产出的 dll 逐字节相同
+（`461A1DD2FB3CA9C2302870C98217C8357776854695FAFF537EB4030D731CB6E9`，46592 字节）。
+
+`.blp` 仍然每次哈希都变——DevTools 按文件时间戳写 zip 条目。**核对重建是否一致时要比条目内容，
+不要比归档哈希**。
 
 ---
 
