@@ -223,13 +223,14 @@ Microsoft.NET.Sdk 的默认 glob 会把 `tests/**/*.cs`（含各 Harness 自己�
 ### 4.5 构建可复现性
 
 「可复现」在这里有严格定义：**同一个 commit，在任意目录、任意机器上两次干净构建，产出的 dll
-逐字节相同**。做到这一点需要四处配合，缺一处就会悄悄退回不确定：
+逐字节相同**。做到这一点需要五处配合，缺一处就会悄悄退回不确定：
 
 ```xml
 <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 <Deterministic>true</Deterministic>
 <PathMap Condition="'$(PathMap)' == ''">$(MSBuildProjectDirectory)=/_/</PathMap>
 <ContinuousIntegrationBuild Condition="'$(ContinuousIntegrationBuild)' == ''">true</ContinuousIntegrationBuild>
+<EnableSourceLink>false</EnableSourceLink>
 ```
 
 每一项都是实测撞出来的，不是一个都不能少的理论洁癖：
@@ -239,6 +240,7 @@ Microsoft.NET.Sdk 的默认 glob 会把 `tests/**/*.cs`（含各 Harness 自己�
 | `IncludeSourceRevisionInInformationalVersion=false` | SDK 把 `+<commit sha>` 拼进 `InformationalVersion`，dll 从 46592 变 47104 字节，且不同 commit 大小都不同 |
 | `PathMap` | 调试目录里嵌了 `.pdb` 的绝对路径，两个目录各建一次得到 `C:\...\bl-repro2\...pdb` 与 `C:\...\bl-repro3\...pdb`，差 73 字节 |
 | `ContinuousIntegrationBuild=true` | 编译器仍会挑随机的 MVID 并把程序集文件路径折进 debug blob，两个 clone 各建一次差 71 字节 |
+| `EnableSourceLink=false` | SourceLink 把本仓库的 commit id 写进 `.sourcelink.json` → pdb → dll。同一 commit 内仍可复现，但**只改文档的新 commit 也会让 hash 变**，文档里印的 hash 立刻过期（实测 `C023E904…` → `6CB6672F…`，字节数不变） |
 
 另外仓库根有 `.gitattributes` 固定 `* text=auto eol=lf`：`core.autocrlf=true` 的检出会把部分文件
 变成 CRLF，编译器把这些差异也折进程序集。**已经 clone 但工作树是 CRLF 的，需要重新检出一次**
@@ -248,7 +250,7 @@ Microsoft.NET.Sdk 的默认 glob 会把 `tests/**/*.cs`（含各 Harness 自己�
 
 ```powershell
 $dll = 'bin\Release\net10.0\BetterLyrics.Plugins.AILyricsTranslation.dll'
-(Get-FileHash $dll).Hash   # 应为 7AF2D3AE193FF32D91F702AEED68BEBA1A87C0612860CFE82F5D84FFFEB277C0
+(Get-FileHash $dll).Hash   # 应为 6CB6672F1C445D92AEDCD90FC84C2F7706D12ECEF34414BD7C9ED3870ED32472
 ```
 
 `.blp` 仍然每次哈希都变——DevTools 按文件时间戳写 zip 条目。**核对重建是否一致时要比条目内容，

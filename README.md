@@ -100,7 +100,7 @@ dotnet build -c Release -p:BetterLyricsHostDir=$stub
 
 构建是可复现的：同一个 commit 在任意两个目录各构建一次，得到的
 `BetterLyrics.Plugins.AILyricsTranslation.dll` 逐字节相同
-（`7AF2D3AE193FF32D91F702AEED68BEBA1A87C0612860CFE82F5D84FFFEB277C0`，46592 字节）。
+（`6CB6672F1C445D92AEDCD90FC84C2F7706D12ECEF34414BD7C9ED3870ED32472`，46592 字节）。
 这依赖 csproj 里的四个属性与根目录 `.gitattributes` 固定 LF，原理与验证方法见
 [`AGENTS.md` 第 4.5 节](AGENTS.md)。`.blp` 因 zip 记录文件时间戳而每次哈希不同，
 比对时请比条目内容。

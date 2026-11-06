@@ -82,7 +82,7 @@ yields a byte-identical `BetterLyrics.Plugins.AILyricsTranslation.dll`**. Verifi
 repository into two different temporary directories, building both, and comparing:
 
 ```
-7AF2D3AE193FF32D91F702AEED68BEBA1A87C0612860CFE82F5D84FFFEB277C0   46592 bytes
+6CB6672F1C445D92AEDCD90FC84C2F7706D12ECEF34414BD7C9ED3870ED32472   46592 bytes
 ```
 
 Four settings cooperate to get there, and each one was added because its absence was measured:

@@ -35,6 +35,14 @@
 			which is what makes the output verifiable. Set it to false to opt out.
 		-->
 		<ContinuousIntegrationBuild Condition="'$(ContinuousIntegrationBuild)' == ''">true</ContinuousIntegrationBuild>
+		<!--
+			SourceLink puts the commit id of this repository into the pdb, which the compiler carries
+			into the dll. The build stayed reproducible per commit but the hash moved on a docs-only
+			commit, so a hash printed in the docs went stale the moment the docs were committed.
+			The plugin ships as a binary and nobody debugs it against a source server, so opt out and
+			keep the hash tied to the source instead of to the commit that happens to carry it.
+		-->
+		<EnableSourceLink>false</EnableSourceLink>
 	</PropertyGroup>
 
 	<PropertyGroup>
