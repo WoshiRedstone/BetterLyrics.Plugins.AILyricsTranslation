@@ -248,7 +248,7 @@ Microsoft.NET.Sdk 的默认 glob 会把 `tests/**/*.cs`（含各 Harness 自己�
 
 ```powershell
 $dll = 'bin\Release\net10.0\BetterLyrics.Plugins.AILyricsTranslation.dll'
-(Get-FileHash $dll).Hash   # 应为 091D52207B25FEFE7917F2C8D350BDD273E118DEB66A562408DCF37E98F2243E
+(Get-FileHash $dll).Hash   # 应为 7AF2D3AE193FF32D91F702AEED68BEBA1A87C0612860CFE82F5D84FFFEB277C0
 ```
 
 `.blp` 仍然每次哈希都变——DevTools 按文件时间戳写 zip 条目。**核对重建是否一致时要比条目内容，
