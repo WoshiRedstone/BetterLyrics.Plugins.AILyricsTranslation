@@ -85,13 +85,14 @@ repository into two different temporary directories, building both, and comparin
 6CB6672F1C445D92AEDCD90FC84C2F7706D12ECEF34414BD7C9ED3870ED32472   46592 bytes
 ```
 
-Four settings cooperate to get there, and each one was added because its absence was measured:
+Five settings cooperate to get there, and each one was added because its absence was measured:
 
 | Property | What happened without it |
 | --- | --- |
 | `IncludeSourceRevisionInInformationalVersion=false` | The SDK appends `+<commit sha>` to the informational version: the dll grew from 46592 to 47104 bytes and differed per commit |
 | `PathMap=$(MSBuildProjectDirectory)=/_/` | The debug directory embeds the absolute `.pdb` path, so two folders produced `...\bl-repro2\...pdb` and `...\bl-repro3\...pdb` — 73 bytes apart |
 | `ContinuousIntegrationBuild=true` | The compiler still picked a random MVID and folded the assembly path into the debug blob — 71 bytes apart across two clones |
+| `EnableSourceLink=false` | SourceLink wrote this repository's commit id into `.sourcelink.json`, the pdb carried it into the dll, and the hash moved on every commit — even a docs-only one, which made a hash printed in the docs stale as soon as the docs were committed |
 | `.gitattributes` with `* text=auto eol=lf` | A `core.autocrlf=true` checkout mixed CRLF and LF, and the compiler folded that into the assembly |
 
 If you already cloned the repository before `.gitattributes` existed, re-checkout once:
