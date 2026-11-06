@@ -21,6 +21,13 @@
 		-->
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 		<Deterministic>true</Deterministic>
+		<!--
+			The debug directory embeds the absolute path of the .pdb, so two clones of the same commit
+			in two folders produced dll files that differed in 73 bytes. Mapping the project folder to
+			"/_/" (the same convention the SDK uses for a CI build) removes the last machine specific
+			input and keeps the compiler deterministic across directories, not just across rebuilds.
+		-->
+		<PathMap Condition="'$(PathMap)' == ''">$(MSBuildProjectDirectory)=/_/</PathMap>
 		<ContinuousIntegrationBuild Condition="'$(ContinuousIntegrationBuild)' == '' and '$(GITHUB_ACTIONS)' != ''">true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
