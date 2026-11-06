@@ -76,15 +76,27 @@ is what the release uses.
 
 ## 4. Reproducibility
 
-The project sets `Deterministic=true` and
-`IncludeSourceRevisionInInformationalVersion=false`, so **two clean builds of the same sources
-produce a byte-identical `BetterLyrics.Plugins.AILyricsTranslation.dll`** (verified:
-`461A1DD2FB3CA9C2302870C98217C8357776854695FAFF537EB4030D731CB6E9`, 46592 bytes).
+"Reproducible" here means something strict: **the same commit, built twice, in any two folders,
+yields a byte-identical `BetterLyrics.Plugins.AILyricsTranslation.dll`**. Verified by cloning the
+repository into two different temporary directories, building both, and comparing:
+
+```
+091D52207B25FEFE7917F2C8D350BDD273E118DEB66A562408DCF37E98F2243E   46592 bytes
+```
+
+Four settings cooperate to get there, and each one was added because its absence was measured:
+
+| Property | What happened without it |
+| --- | --- |
+| `IncludeSourceRevisionInInformationalVersion=false` | The SDK appends `+<commit sha>` to the informational version: the dll grew from 46592 to 47104 bytes and differed per commit |
+| `PathMap=$(MSBuildProjectDirectory)=/_/` | The debug directory embeds the absolute `.pdb` path, so two folders produced `...\bl-repro2\...pdb` and `...\bl-repro3\...pdb` — 73 bytes apart |
+| `ContinuousIntegrationBuild=true` | The compiler still picked a random MVID and folded the assembly path into the debug blob — 71 bytes apart across two clones |
+| `.gitattributes` with `* text=auto eol=lf` | A `core.autocrlf=true` checkout mixed CRLF and LF, and the compiler folded that into the assembly |
+
+If you already cloned the repository before `.gitattributes` existed, re-checkout once:
+`git rm --cached -r . && git add -A && git checkout -- .` — afterwards `git ls-files --eol`
+should report `w/lf` for every file.
 
 The `.blp` is a different story: `BetterLyrics.DevTools` writes the zip entries with their
 file timestamps, so the package hash changes between builds even though every entry inside it
 is identical. Compare entries, not the archive, when you check a rebuild.
-
-Without `IncludeSourceRevisionInInformationalVersion=false` the SDK appends
-`+<commit sha>` to the informational version, which makes every clone and every commit produce
-a different dll — that is why the property is there.

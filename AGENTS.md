@@ -222,17 +222,34 @@ Microsoft.NET.Sdk 的默认 glob 会把 `tests/**/*.cs`（含各 Harness 自己�
 
 ### 4.5 构建可复现性
 
-csproj 里有这两个属性：
+「可复现」在这里有严格定义：**同一个 commit，在任意目录、任意机器上两次干净构建，产出的 dll
+逐字节相同**。做到这一点需要四处配合，缺一处就会悄悄退回不确定：
 
 ```xml
-<Deterministic>true</Deterministic>
 <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+<Deterministic>true</Deterministic>
+<PathMap Condition="'$(PathMap)' == ''">$(MSBuildProjectDirectory)=/_/</PathMap>
+<ContinuousIntegrationBuild Condition="'$(ContinuousIntegrationBuild)' == ''">true</ContinuousIntegrationBuild>
 ```
 
-第二个不是可选项。默认 SDK 会把 `+<commit sha>` 拼进 `InformationalVersion`，于是**同一份源码
-在不同 clone、不同提交下编出的 dll 大小都不一样**（实测 47104 与 46592 字节差的就是这段
-`1.0.0+87e2828…`）。关掉之后，同一份源码两次干净构建产出的 dll 逐字节相同
-（`461A1DD2FB3CA9C2302870C98217C8357776854695FAFF537EB4030D731CB6E9`，46592 字节）。
+每一项都是实测撞出来的，不是一个都不能少的理论洁癖：
+
+| 属性 | 不做会怎样（实测） |
+| --- | --- |
+| `IncludeSourceRevisionInInformationalVersion=false` | SDK 把 `+<commit sha>` 拼进 `InformationalVersion`，dll 从 46592 变 47104 字节，且不同 commit 大小都不同 |
+| `PathMap` | 调试目录里嵌了 `.pdb` 的绝对路径，两个目录各建一次得到 `C:\...\bl-repro2\...pdb` 与 `C:\...\bl-repro3\...pdb`，差 73 字节 |
+| `ContinuousIntegrationBuild=true` | 编译器仍会挑随机的 MVID 并把程序集文件路径折进 debug blob，两个 clone 各建一次差 71 字节 |
+
+另外仓库根有 `.gitattributes` 固定 `* text=auto eol=lf`：`core.autocrlf=true` 的检出会把部分文件
+变成 CRLF，编译器把这些差异也折进程序集。**已经 clone 但工作树是 CRLF 的，需要重新检出一次**
+（`git rm --cached -r . && git add -A && git checkout -- .` 之后 `git ls-files --eol` 应该全是 `w/lf`）。
+
+验证方式（两个不同目录各建一次，对比 dll 的 SHA256）：
+
+```powershell
+$dll = 'bin\Release\net10.0\BetterLyrics.Plugins.AILyricsTranslation.dll'
+(Get-FileHash $dll).Hash   # 应为 091D52207B25FEFE7917F2C8D350BDD273E118DEB66A562408DCF37E98F2243E
+```
 
 `.blp` 仍然每次哈希都变——DevTools 按文件时间戳写 zip 条目。**核对重建是否一致时要比条目内容，
 不要比归档哈希**。

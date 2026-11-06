@@ -28,7 +28,13 @@
 			input and keeps the compiler deterministic across directories, not just across rebuilds.
 		-->
 		<PathMap Condition="'$(PathMap)' == ''">$(MSBuildProjectDirectory)=/_/</PathMap>
-		<ContinuousIntegrationBuild Condition="'$(ContinuousIntegrationBuild)' == '' and '$(GITHUB_ACTIONS)' != ''">true</ContinuousIntegrationBuild>
+		<!--
+			Without this the compiler still picks a random module version id and folds the assembly
+			file path into the debug blob: two clones of the same commit built in two folders came out
+			71 bytes apart. CI build turns on deterministic source paths and a content derived MVID,
+			which is what makes the output verifiable. Set it to false to opt out.
+		-->
+		<ContinuousIntegrationBuild Condition="'$(ContinuousIntegrationBuild)' == ''">true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
 	<PropertyGroup>

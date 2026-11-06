@@ -98,6 +98,13 @@ dotnet build -c Release -p:BetterLyricsHostDir=$stub
 **注意**：I18n 生成在 `AfterTargets="Build"`，第一次构建时 `Langs` 尚不存在，因此
 **必须连续构建两次**才能得到含 `Langs\` 的完整 `.blp`。
 
+构建是可复现的：同一个 commit 在任意两个目录各构建一次，得到的
+`BetterLyrics.Plugins.AILyricsTranslation.dll` 逐字节相同
+（`091D52207B25FEFE7917F2C8D350BDD273E118DEB66A562408DCF37E98F2243E`，46592 字节）。
+这依赖 csproj 里的四个属性与根目录 `.gitattributes` 固定 LF，原理与验证方法见
+[`AGENTS.md` 第 4.5 节](AGENTS.md)。`.blp` 因 zip 记录文件时间戳而每次哈希不同，
+比对时请比条目内容。
+
 更细的工程说明（文件地图、数据流、5 条已知坑、改动检查清单）见 [`AGENTS.md`](AGENTS.md)。
 
 ## 4. 验证
