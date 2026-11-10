@@ -295,7 +295,7 @@ dotnet run -c Release
 
 > **关于编译产物**：源码是 MIT，但本插件引用的 `BetterLyrics.Sdk`（1.0.3）是
 > **GPL-3.0-or-later**，因此**编译出来的 `.blp` / dll 作为一个整体按 GPL-3.0 分发**，
-> 而不是 MIT。`LICENSE` 末尾列出了全部第三方组件与出处，重新分发前请读一遍。
+> 而不是 MIT
 
 ---
 
